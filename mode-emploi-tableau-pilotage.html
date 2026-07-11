@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mode d'emploi — un tableau de bord tenu par l'IA</title>
+</head>
+<body>
+<title>Mode d'emploi — un tableau de bord tenu par l'IA</title>
+<style>
+  :root {
+    --ground:      #f7f8fa;
+    --surface:     #ffffff;
+    --surface-2:   #f0f2f5;
+    --ink:         #1c2024;
+    --muted:       #5a626c;
+    --hair:        #e2e5ea;
+    --accent:      #b8560f;   /* orange contrasté, pour le texte/liens */
+    --accent-soft: #fbeadd;
+    /* couleurs de statut, reprises du tableau réel */
+    --st-feedback:   #d9741f;
+    --st-en-cours:   #2b7fc4;
+    --st-a-demarrer: #7d5fd6;
+    --st-en-pause:   #6b727b;
+    --st-termine:    #2f9e52;
+    --st-feedback-bg:   #fbeadd;
+    --st-en-cours-bg:   #e3f0fb;
+    --st-a-demarrer-bg: #ece6fb;
+    --st-en-pause-bg:   #eceef1;
+    --st-termine-bg:    #e2f4e8;
+
+    --serif: "Charter", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:      #16181d;
+      --surface:     #1e2128;
+      --surface-2:   #23262e;
+      --ink:         #e7eaee;
+      --muted:       #99a1ac;
+      --hair:        #2e323b;
+      --accent:      #ffab6b;
+      --accent-soft: #33271c;
+      --st-feedback:   #ff9d55;
+      --st-en-cours:   #6bb8f5;
+      --st-a-demarrer: #b79bf5;
+      --st-en-pause:   #98a0aa;
+      --st-termine:    #6cd48a;
+      --st-feedback-bg:   #331f10;
+      --st-en-cours-bg:   #14293a;
+      --st-a-demarrer-bg: #241d3a;
+      --st-en-pause-bg:   #262a30;
+      --st-termine-bg:    #16301f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#16181d; --surface:#1e2128; --surface-2:#23262e; --ink:#e7eaee;
+    --muted:#99a1ac; --hair:#2e323b; --accent:#ffab6b; --accent-soft:#33271c;
+    --st-feedback:#ff9d55; --st-en-cours:#6bb8f5; --st-a-demarrer:#b79bf5;
+    --st-en-pause:#98a0aa; --st-termine:#6cd48a;
+    --st-feedback-bg:#331f10; --st-en-cours-bg:#14293a; --st-a-demarrer-bg:#241d3a;
+    --st-en-pause-bg:#262a30; --st-termine-bg:#16301f;
+  }
+  :root[data-theme="light"] {
+    --ground:#f7f8fa; --surface:#ffffff; --surface-2:#f0f2f5; --ink:#1c2024;
+    --muted:#5a626c; --hair:#e2e5ea; --accent:#b8560f; --accent-soft:#fbeadd;
+    --st-feedback:#d9741f; --st-en-cours:#2b7fc4; --st-a-demarrer:#7d5fd6;
+    --st-en-pause:#6b727b; --st-termine:#2f9e52;
+    --st-feedback-bg:#fbeadd; --st-en-cours-bg:#e3f0fb; --st-a-demarrer-bg:#ece6fb;
+    --st-en-pause-bg:#eceef1; --st-termine-bg:#e2f4e8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 17px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 0 1.4rem 6rem; }
+
+  /* ————— Hero ————— */
+  .hero { padding: 4.5rem 0 2.6rem; border-bottom: 1px solid var(--hair); }
+  .eyebrow {
+    font-size: .74rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin: 0 0 1.3rem;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-weight: 600; text-wrap: balance;
+    font-size: clamp(2.1rem, 6vw, 3rem); line-height: 1.1; letter-spacing: -.01em;
+    margin: 0 0 1rem;
+  }
+  .hero .dek {
+    font-size: 1.18rem; color: var(--muted); max-width: 34em; margin: 0;
+    text-wrap: pretty;
+  }
+  .byline {
+    margin-top: 2rem; font-size: .82rem; color: var(--muted);
+    display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;
+  }
+  .byline .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); opacity: .6; }
+
+  /* ————— Typographie de section ————— */
+  section { padding-top: 3rem; }
+  h2 {
+    font-family: var(--serif); font-weight: 600; font-size: 1.7rem;
+    line-height: 1.2; letter-spacing: -.01em; text-wrap: balance;
+    margin: 0 0 .3rem; display: flex; align-items: baseline; gap: .7rem;
+  }
+  h2 .num {
+    font-family: var(--mono); font-size: .8rem; font-weight: 500;
+    color: var(--accent); letter-spacing: 0; flex: none;
+    transform: translateY(-.35em);
+  }
+  .kicker { color: var(--muted); font-size: 1.02rem; margin: 0 0 1.6rem; }
+  h3 {
+    font-family: var(--sans); font-weight: 650; font-size: 1.08rem;
+    margin: 2rem 0 .2rem; letter-spacing: -.005em;
+  }
+  p { margin: 0 0 1.1rem; text-wrap: pretty; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 650; }
+
+  /* ————— Trois partis pris ————— */
+  .principles { display: flex; flex-direction: column; gap: 1rem; margin: 1.6rem 0; }
+  .principle {
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 12px;
+    padding: 1.3rem 1.4rem; border-left: 3px solid var(--accent);
+  }
+  .principle h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
+  .principle p { margin: 0; color: var(--muted); font-size: .96rem; }
+
+  /* ————— Légende de statuts (l'instrument du sujet) ————— */
+  .legend {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: .55rem; margin: 1.6rem 0;
+  }
+  .st {
+    display: flex; align-items: center; gap: .55rem;
+    padding: .55rem .7rem; border-radius: 9px; background: var(--surface);
+    border: 1px solid var(--hair); font-size: .88rem;
+  }
+  .st .bar { width: 4px; align-self: stretch; border-radius: 3px; flex: none; }
+  .st .name { font-family: var(--mono); font-size: .78rem; color: var(--ink); }
+  .st .desc { color: var(--muted); font-size: .8rem; }
+  .st.feedback   .bar { background: var(--st-feedback); }
+  .st.en-cours   .bar { background: var(--st-en-cours); }
+  .st.a-demarrer .bar { background: var(--st-a-demarrer); }
+  .st.en-pause   .bar { background: var(--st-en-pause); }
+  .st.termine    .bar { background: var(--st-termine); }
+
+  /* ————— Schéma fichiers ————— */
+  .tree {
+    font-family: var(--mono); font-size: .9rem; line-height: 1.8;
+    background: var(--surface-2); border: 1px solid var(--hair); border-radius: 10px;
+    padding: 1.1rem 1.3rem; margin: 1.4rem 0; overflow-x: auto;
+  }
+  .tree .c { color: var(--muted); }
+
+  /* ————— Blocs de code ————— */
+  figure.code { margin: 1.4rem 0; }
+  figure.code figcaption {
+    font-family: var(--mono); font-size: .76rem; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--muted);
+    padding: .5rem .9rem; background: var(--surface-2);
+    border: 1px solid var(--hair); border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  figure.code figcaption .dotfile { color: var(--accent); font-weight: 600; }
+  pre {
+    margin: 0; padding: 1.1rem 1.3rem; overflow-x: auto;
+    background: var(--surface); border: 1px solid var(--hair);
+    border-radius: 0 0 10px 10px;
+    font-family: var(--mono); font-size: .82rem; line-height: 1.6;
+    color: var(--ink); -webkit-text-size-adjust: 100%;
+  }
+  pre code { font: inherit; }
+
+  /* ————— Callout ————— */
+  .callout {
+    background: var(--st-feedback-bg); border: 1px solid var(--hair);
+    border-left: 3px solid var(--st-feedback); border-radius: 10px;
+    padding: 1.1rem 1.3rem; margin: 1.6rem 0;
+  }
+  .callout .lbl {
+    font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 700; color: var(--st-feedback); margin: 0 0 .4rem;
+  }
+  .callout p { margin: 0; font-size: .96rem; }
+  .callout.quote { background: var(--surface); border-left-color: var(--accent); }
+  .callout.quote p { font-family: var(--serif); font-size: 1.05rem; font-style: italic; color: var(--ink); }
+
+  /* ————— Tableaux de champs ————— */
+  .table-wrap { overflow-x: auto; margin: 1.4rem 0; border: 1px solid var(--hair); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .6rem .85rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  th { font-size: .74rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  tr:last-child td { border-bottom: none; }
+  td code, td .m { font-family: var(--mono); font-size: .82em; color: var(--accent); white-space: nowrap; }
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: .74rem;
+    padding: .08rem .45rem; border-radius: 5px; white-space: nowrap;
+  }
+  .chip.feedback   { color: var(--st-feedback);   background: var(--st-feedback-bg); }
+  .chip.en-cours   { color: var(--st-en-cours);   background: var(--st-en-cours-bg); }
+  .chip.a-demarrer { color: var(--st-a-demarrer); background: var(--st-a-demarrer-bg); }
+  .chip.en-pause   { color: var(--st-en-pause);   background: var(--st-en-pause-bg); }
+  .chip.termine    { color: var(--st-termine);    background: var(--st-termine-bg); }
+
+  /* ————— Étapes numérotées ————— */
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 1.6rem 0; display: flex; flex-direction: column; gap: .9rem; }
+  ol.steps li { counter-increment: s; display: flex; gap: 1rem; align-items: flex-start; }
+  ol.steps li::before {
+    content: counter(s); flex: none; width: 1.9rem; height: 1.9rem;
+    display: grid; place-items: center; border-radius: 50%;
+    font-family: var(--mono); font-size: .85rem; font-weight: 600;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--hair);
+  }
+  ol.steps li .txt { padding-top: .15rem; }
+  ol.steps li .txt strong { display: block; }
+
+  /* ————— L'essentiel ————— */
+  .essence {
+    margin: 3.5rem 0 0; padding: 1.8rem 1.6rem;
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 14px;
+  }
+  .essence h2 { font-size: 1.35rem; margin-bottom: 1rem; }
+  .essence ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .6rem; }
+  .essence li { color: var(--ink); font-size: .96rem; }
+
+  footer.foot {
+    margin-top: 3rem; padding-top: 1.4rem; border-top: 1px solid var(--hair);
+    font-size: .82rem; color: var(--muted);
+  }
+
+  @media (max-width: 480px) {
+    body { font-size: 16px; }
+    .hero { padding-top: 3rem; }
+    h2 { font-size: 1.45rem; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(10px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero reveal">
+    <p class="eyebrow">Mode d'emploi · Bootcamp</p>
+    <h1>Un tableau de bord de pilotage tenu par l'IA</h1>
+    <p class="dek">Deux fichiers, aucune dépendance, ouvrable d'un double-clic. Voici la démarche, le code complet, et la discipline qui fait qu'il reste juste.</p>
+    <div class="byline">
+      <span>Thierry Le Pesant</span><span class="dot"></span>
+      <span>À reproduire chez soi</span><span class="dot"></span>
+      <span>~10 min pour démarrer</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">01</span>L'idée, avant le code</h2>
+    <p class="kicker">Le problème est banal : quand on mène dix chantiers de front avec un assistant IA, on perd le fil. L'information existe, éparpillée dans les conversations et les fichiers. Elle n'est nulle part rassemblée.</p>
+    <p>Le tableau de bord est cette page unique qui rassemble. Trois partis pris le définissent, et ce sont eux qui comptent, bien plus que la technique.</p>
+    <div class="principles">
+      <div class="principle">
+        <h3>Une seule source de vérité, tenue par l'IA</h3>
+        <p>Le tableau n'est pas un outil que je remplis à la main. C'est l'assistant qui le tient à jour, à partir de ce qu'il observe réellement dans mes dossiers. La page ne fait qu'afficher ; toute la matière vit dans un seul fichier. On ne modifie jamais qu'un endroit.</p>
+      </div>
+      <div class="principle">
+        <h3>Il dit où la balle est dans mon camp</h3>
+        <p>Le statut le plus important n'est pas « en cours », c'est « attend mon feedback ». Un assistant avance vite et bute souvent sur une décision qui n'appartient qu'à moi. Ces points d'attente se perdent facilement et coûtent cher. Le tableau les remonte en tête, en orange, et les compte.</p>
+      </div>
+      <div class="principle">
+        <h3>Une honnêteté explicite sur ce qu'on sait</h3>
+        <p>Chaque note distingue le <strong>Fait</strong> (vérifiable), l'<strong>Interprétation</strong> (ce que l'assistant en déduit) et la <strong>Lacune</strong> (ce qui manque, ou vit hors de sa portée). Cette discipline, héritée de l'historien Marc Bloch, est ce qui rend l'objet fiable.</p>
+      </div>
+    </div>
+    <p>Un dernier mot sur « temps réel ». Ce tableau n'est pas une sonde branchée sur vos systèmes. Il est juste quand on travaille ensemble et qu'on le met à jour en fin de séance. C'est un carnet de bord tenu à la main par une IA, pas un moniteur d'usine. Assumer cette limite évite la pire des illusions : croire à jour un tableau qui ne l'est plus.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>L'architecture en un coup d'œil</h2>
+    <p class="kicker">Deux fichiers dans un dossier. Rien d'autre.</p>
+    <div class="tree">
+pilotage/<br>
+├── <strong>index.html</strong>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">← la page qui affiche (on n'y touche presque jamais)</span><br>
+└── <strong>donnees.js</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">← la source de vérité (le seul fichier qu'on modifie)</span>
+    </div>
+    <p>Aucune dépendance, aucun cadre logiciel, aucun accès Internet : du HTML, du CSS et du JavaScript natifs. Aucune étape de compilation : on ouvre le fichier, on ne construit rien. Aucun serveur : double-clic, ou adresse <code>file://…/pilotage/index.html</code>.</p>
+    <p>Le principe est celui d'un présentoir et de ses fiches. <strong>index.html</strong> est le présentoir : une coquille vide qui sait mettre en forme des chantiers. <strong>donnees.js</strong> est le jeu de fiches. Au chargement, le présentoir lit les fiches et les affiche. Pour changer l'affichage, on change les fiches, jamais le présentoir.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>Le vocabulaire des statuts</h2>
+    <p class="kicker">Cinq états, une couleur chacun. C'est l'instrument du tableau : à écrire exactement ainsi, car chaque valeur pilote une couleur, le tri et les filtres.</p>
+    <div class="legend">
+      <div class="st feedback"><span class="bar"></span><span><span class="name">feedback-attendu</span><br><span class="desc">La balle est dans votre camp</span></span></div>
+      <div class="st en-cours"><span class="bar"></span><span><span class="name">en-cours</span><br><span class="desc">On y travaille activement</span></span></div>
+      <div class="st a-demarrer"><span class="bar"></span><span><span class="name">a-demarrer</span><br><span class="desc">Décidé, pas commencé</span></span></div>
+      <div class="st en-pause"><span class="bar"></span><span><span class="name">en-pause</span><br><span class="desc">Ouvert, en sommeil</span></span></div>
+      <div class="st termine"><span class="bar"></span><span><span class="name">termine</span><br><span class="desc">Clos</span></span></div>
+    </div>
+    <p>L'ordre n'est pas alphabétique : il est fait pour que ce qui réclame votre attention remonte en haut, et que le terminé descende en bas. C'est l'effet de fin cher à Kahneman appliqué à un tableau : on ne veut pas que le terminé, agréable à contempler, masque ce qui attend une décision.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>Le fichier des données</h2>
+    <p class="kicker">C'est ici que tout se passe, et le seul fichier que vous manipulerez. Copiez ce gabarit tel quel : deux chantiers d'exemple montrent tous les cas.</p>
+    <figure class="code">
+      <figcaption><span class="dotfile">donnees.js</span> · la source de vérité</figcaption>
+<pre><code>/*
+ * donnees.js — LA SOURCE DE VÉRITÉ du tableau de bord.
+ * Pour mettre le tableau à jour, on modifie CE FICHIER, rien d'autre.
+ * La page index.html le relit à chaque rechargement.
+ *
+ * Statuts autorisés (à écrire exactement ainsi) :
+ *   "feedback-attendu" — la balle est dans MON camp
+ *   "en-cours"         — quelqu'un y travaille activement
+ *   "a-demarrer"       — décidé, pas encore commencé
+ *   "en-pause"         — ouvert, mais en sommeil
+ *   "termine"          — clos
+ *
+ * Convention pour "note" (registre d'honnêteté) :
+ *   F : le Fait (vérifiable)   I : l'Interprétation   L : la Lacune
+ */
+
+window.TABLEAU = {
+  miseAJour: "2026-07-11",              // date affichée, format AAAA-MM-JJ
+  avertissement:
+    "Ce tableau est tenu à la main lors de nos séances de travail. " +
+    "Il est juste quand on travaille ensemble, pas une sonde automatique.",
+
+  chantiers: [
+    // ——— Un chantier qui attend une décision de ma part ———
+    {
+      id: "offre-collective",
+      titre: "Nouvelle offre pour dirigeants",
+      domaine: "Projets",
+      statut: "feedback-attendu",
+      resume:
+        "Trois expérimentations menées, résultats probants mais non " +
+        "documentés. Le cadre de l'offre est prêt à être arbitré.",
+      prochainePas: "Choisir entre positionnement conseil ou formation.",
+      feedback:
+        "J'ai préparé deux positionnements possibles. Il me faut ta " +
+        "décision avant de rédiger la plaquette.",
+      liens: [
+        "projets/offre-collective/note-cadrage.md",
+      ],
+      note:
+        "F : trois expérimentations réalisées (comptes rendus présents). " +
+        "L : aucun n'est encore mis en forme pour un client.",
+      sessions: [],
+    },
+
+    // ——— Un chantier en cours, avec des sous-tâches ———
+    {
+      id: "lecture-fondamentaux",
+      titre: "Lectures de fond sur la décision collective",
+      domaine: "Connaissance",
+      statut: "en-cours",
+      resume: "Constitution d'un socle de références sur les biais de groupe.",
+      prochainePas: "Distiller le dernier ouvrage en notes atomiques.",
+      feedback: null,                    // null = rien en attente de ma part
+      liens: [ "bibliotheque/decision-collective/" ],
+      note: "F : quatre ouvrages catalogués. I : deux mériteraient une fiche.",
+      sessions: [
+        {
+          titre: "Kahneman — Noise : fiche de lecture",
+          statut: "termine",
+          detail: "Première brique du socle.",
+          feedback: false,              // au niveau session, feedback = OUI/NON
+        },
+        {
+          titre: "Edmondson — Sécurité psychologique",
+          statut: "a-demarrer",
+          detail: "Ouvrage acheté, pas encore lu.",
+          feedback: false,
+        },
+      ],
+    },
+  ],
+
+  // ——— Espace de capture libre, en quatre bacs ———
+  priseDeNotes: {
+    intro: "Capture en vrac. Les idées pas encore mûres ni classées.",
+    bacs: [
+      { id: "tips",         titre: "Tips",         items: ["Sauvegarder chaque vendredi."] },
+      { id: "bibliotheque", titre: "Bibliothèque", items: [] },
+      { id: "pro",          titre: "Pro",          items: [] },
+      { id: "perso",        titre: "Perso",        items: [] },
+    ],
+  },
+};</code></pre>
+    </figure>
+
+    <h3>Le schéma d'un chantier</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Champ</th><th>Type</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>texte</td><td>Identifiant technique, minuscules-avec-tirets. Jamais affiché.</td></tr>
+          <tr><td><code>titre</code></td><td>texte</td><td>Le titre de la carte.</td></tr>
+          <tr><td><code>domaine</code></td><td>texte</td><td>La catégorie, en petite étiquette. Vous choisissez les vôtres.</td></tr>
+          <tr><td><code>statut</code></td><td>texte</td><td>L'un des cinq statuts, exactement. Pilote couleur, tri et filtres.</td></tr>
+          <tr><td><code>resume</code></td><td>texte</td><td>Le paragraphe descriptif.</td></tr>
+          <tr><td><code>prochainePas</code></td><td>texte</td><td>La prochaine action concrète. Peut rester vide.</td></tr>
+          <tr><td><code>feedback</code></td><td>texte ou <span class="m">null</span></td><td><strong>Le champ clé.</strong> Un texte affiche l'encart orange (ce que l'IA attend de vous) ; <span class="m">null</span> = rien en attente.</td></tr>
+          <tr><td><code>liens</code></td><td>liste</td><td>Chemins de fichiers. La page ajoute <span class="m">../</span> toute seule. Peut être vide.</td></tr>
+          <tr><td><code>note</code></td><td>texte</td><td>La note d'honnêteté, en registre F / I / L.</td></tr>
+          <tr><td><code>sessions</code></td><td>liste</td><td>Les sous-tâches. Peut être vide.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Le schéma d'une session (sous-tâche)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Champ</th><th>Type</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><code>titre</code></td><td>texte</td><td>Le titre de la sous-tâche.</td></tr>
+          <tr><td><code>statut</code></td><td>texte</td><td>Le même jeu de cinq statuts (couleur du point).</td></tr>
+          <tr><td><code>detail</code></td><td>texte</td><td>Une précision, facultative.</td></tr>
+          <tr><td><code>feedback</code></td><td>vrai / faux</td><td><strong>Attention :</strong> au niveau chantier c'est un texte ou <span class="m">null</span> ; au niveau session, un simple <span class="m">true</span>/<span class="m">false</span> qui affiche ou non un drapeau.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span>La page d'affichage</h2>
+    <p class="kicker">Copiez ce fichier tel quel. Il ne contient aucune donnée, seulement la mise en forme et la logique. Vous n'y reviendrez presque jamais.</p>
+    <figure class="code">
+      <figcaption><span class="dotfile">index.html</span> · le présentoir</figcaption>
+<pre><code>&lt;!doctype html&gt;
+&lt;html lang="fr"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;title&gt;Tableau de bord — Pilotage&lt;/title&gt;
+&lt;style&gt;
+  /* Couleurs des statuts : une couleur = un état. */
+  :root {
+    --bg:#1a1b1e; --carte:#25262b; --texte:#e9ecef; --doux:#909296;
+    --feedback:#ff8c42; --en-cours:#4dabf7; --a-demarrer:#b197fc;
+    --en-pause:#868e96; --termine:#51cf66;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:2rem; background:var(--bg); color:var(--texte);
+         font-family:-apple-system,Segoe UI,Roboto,sans-serif; line-height:1.5; }
+  .wrap { max-width:820px; margin:0 auto; }
+  h1 { margin:0 0 .2rem; }
+  .maj, .avert { color:var(--doux); font-size:.9rem; }
+  .avert { margin:.6rem 0 1.4rem; padding:.6rem .9rem; background:var(--carte); border-radius:8px; }
+  .stats { display:flex; gap:1rem; margin-bottom:1.4rem; flex-wrap:wrap; }
+  .tuile { background:var(--carte); border-radius:10px; padding:1rem 1.3rem; }
+  .tuile .n { font-size:1.8rem; font-weight:700; }
+  .tuile.alerte .n { color:var(--feedback); }
+  .controle { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+  .filtre { background:var(--carte); color:var(--texte); border:1px solid #3a3b40;
+            border-radius:20px; padding:.35rem .9rem; cursor:pointer; font-size:.85rem; }
+  .filtre.actif { border-color:var(--texte); }
+  #recherche { flex:1; min-width:180px; background:var(--carte); color:var(--texte);
+               border:1px solid #3a3b40; border-radius:20px; padding:.35rem .9rem; }
+  .chantier { background:var(--carte); border-radius:10px; padding:1rem 1.2rem;
+              margin-bottom:.9rem; border-left:4px solid var(--doux); }
+  .chantier[data-statut="feedback-attendu"] { border-left-color:var(--feedback); }
+  .chantier[data-statut="en-cours"]         { border-left-color:var(--en-cours); }
+  .chantier[data-statut="a-demarrer"]       { border-left-color:var(--a-demarrer); }
+  .chantier[data-statut="en-pause"]         { border-left-color:var(--en-pause); }
+  .chantier[data-statut="termine"]          { border-left-color:var(--termine); }
+  .tete { display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; }
+  .tete h3 { margin:0; font-size:1.1rem; }
+  .domaine { font-size:.75rem; color:var(--doux); background:#2f3035; padding:.1rem .5rem; border-radius:6px; }
+  .chip { font-size:.75rem; font-weight:600; padding:.1rem .5rem; border-radius:6px; }
+  .chip.statut-feedback-attendu { color:var(--feedback); }
+  .chip.statut-en-cours         { color:var(--en-cours); }
+  .chip.statut-a-demarrer       { color:var(--a-demarrer); }
+  .chip.statut-en-pause         { color:var(--en-pause); }
+  .chip.statut-termine          { color:var(--termine); }
+  .resume { margin:.5rem 0; }
+  .pas { font-size:.9rem; }
+  .encart-feedback { margin:.6rem 0; padding:.5rem .8rem; background:rgba(255,140,66,.12);
+                     border-radius:8px; font-size:.9rem; }
+  .note { font-style:italic; color:var(--doux); font-size:.82rem; margin-top:.5rem; }
+  .liens a { color:var(--en-cours); font-size:.82rem; margin-right:.7rem; }
+  details { margin-top:.5rem; font-size:.88rem; }
+  details .point { display:inline-block; width:.6rem; height:.6rem; border-radius:50%; margin-right:.4rem; }
+  footer { margin-top:2rem; color:var(--doux); font-size:.8rem; border-top:1px solid #3a3b40; padding-top:1rem; }
+  .bacs { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+  .bac { background:var(--carte); border-radius:10px; padding:1rem; }
+  .bac h4 { margin:0 0 .5rem; }
+  .bac li { font-size:.85rem; margin-bottom:.3rem; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="wrap"&gt;
+  &lt;h1&gt;Tableau de bord&lt;/h1&gt;
+  &lt;div class="maj" id="maj"&gt;&lt;/div&gt;
+  &lt;div class="avert" id="avert"&gt;&lt;/div&gt;
+  &lt;div class="stats" id="stats"&gt;&lt;/div&gt;
+  &lt;div class="controle" id="controle"&gt;&lt;/div&gt;
+  &lt;div id="liste"&gt;&lt;/div&gt;
+  &lt;h2&gt;Prise de notes&lt;/h2&gt;
+  &lt;div class="bacs" id="notes"&gt;&lt;/div&gt;
+  &lt;footer id="footer"&gt;&lt;/footer&gt;
+&lt;/div&gt;
+
+&lt;script src="donnees.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const data = window.TABLEAU;
+  const $ = (s) =&gt; document.querySelector(s);
+  const esc = (t) =&gt; String(t ?? "").replace(/[&amp;&lt;&gt;"]/g, (c) =&gt;
+    ({ "&amp;":"&amp;amp;","&lt;":"&amp;lt;","&gt;":"&amp;gt;",'"':"&amp;quot;" }[c]));
+
+  // Ordre de priorité d'affichage et libellés lisibles des statuts.
+  const ORDRE = { "feedback-attendu":0, "en-cours":1, "a-demarrer":2, "en-pause":3, "termine":4 };
+  const LABEL = { "feedback-attendu":"Feedback attendu", "en-cours":"En cours",
+                  "a-demarrer":"À démarrer", "en-pause":"En pause", "termine":"Terminé" };
+
+  let filtreStatut = "tous", recherche = "";
+
+  function stats() {
+    const c = data.chantiers;
+    const fb = c.filter((x) =&gt; x.statut === "feedback-attendu").length;
+    const ec = c.filter((x) =&gt; x.statut === "en-cours").length;
+    $("#stats").innerHTML =
+      `&lt;div class="tuile"&gt;&lt;div class="n"&gt;${c.length}&lt;/div&gt;chantiers&lt;/div&gt;` +
+      `&lt;div class="tuile ${fb ? "alerte" : ""}"&gt;&lt;div class="n"&gt;${fb}&lt;/div&gt;attendent ton feedback&lt;/div&gt;` +
+      `&lt;div class="tuile"&gt;&lt;div class="n"&gt;${ec}&lt;/div&gt;en cours&lt;/div&gt;`;
+  }
+
+  function filtres() {
+    const presents = [...new Set(data.chantiers.map((c) =&gt; c.statut))]
+      .sort((a, b) =&gt; ORDRE[a] - ORDRE[b]);
+    const btn = (val, txt) =&gt;
+      `&lt;button class="filtre ${filtreStatut === val ? "actif" : ""}" data-f="${val}"&gt;${txt}&lt;/button&gt;`;
+    $("#controle").innerHTML =
+      btn("tous", "Tous") + presents.map((s) =&gt; btn(s, LABEL[s])).join("") +
+      `&lt;input id="recherche" placeholder="Rechercher…" value="${esc(recherche)}"&gt;`;
+    document.querySelectorAll(".filtre").forEach((b) =&gt;
+      b.onclick = () =&gt; { filtreStatut = b.dataset.f; rendu(); });
+    $("#recherche").oninput = (e) =&gt; { recherche = e.target.value; liste(); };
+  }
+
+  function correspond(c) {
+    if (!recherche) return true;
+    const blob = [c.titre, c.domaine, c.resume, c.prochainePas, c.feedback, c.note,
+      ...(c.sessions || []).map((s) =&gt; s.titre + " " + s.detail)].join(" ").toLowerCase();
+    return blob.includes(recherche.toLowerCase());
+  }
+
+  function carte(c) {
+    const feedbackHtml = c.feedback
+      ? `&lt;div class="encart-feedback"&gt;⚑ ${esc(c.feedback)}&lt;/div&gt;` : "";
+    const liensHtml = (c.liens || []).length
+      ? `&lt;div class="liens"&gt;${c.liens.map((l) =&gt; `&lt;a href="../${esc(l)}"&gt;${esc(l)}&lt;/a&gt;`).join("")}&lt;/div&gt;` : "";
+    const sessionsHtml = (c.sessions || []).length
+      ? `&lt;details&gt;&lt;summary&gt;${c.sessions.length} session(s)&lt;/summary&gt;` +
+        c.sessions.map((s) =&gt;
+          `&lt;div&gt;&lt;span class="point" style="background:var(--${s.statut})"&gt;&lt;/span&gt;` +
+          `${esc(s.titre)} ${s.feedback ? "⚑" : ""}&lt;br&gt;&lt;small&gt;${esc(s.detail)}&lt;/small&gt;&lt;/div&gt;`).join("") +
+        `&lt;/details&gt;` : "";
+    return `&lt;div class="chantier" data-statut="${esc(c.statut)}"&gt;
+      &lt;div class="tete"&gt;&lt;h3&gt;${esc(c.titre)}&lt;/h3&gt;
+        &lt;span class="domaine"&gt;${esc(c.domaine)}&lt;/span&gt;
+        &lt;span class="chip statut-${esc(c.statut)}"&gt;${esc(LABEL[c.statut] || c.statut)}&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="resume"&gt;${esc(c.resume)}&lt;/div&gt;
+      ${c.prochainePas ? `&lt;div class="pas"&gt;&lt;b&gt;Prochain pas —&lt;/b&gt; ${esc(c.prochainePas)}&lt;/div&gt;` : ""}
+      ${feedbackHtml}${sessionsHtml}
+      ${c.note ? `&lt;div class="note"&gt;${esc(c.note)}&lt;/div&gt;` : ""}
+      ${liensHtml}
+    &lt;/div&gt;`;
+  }
+
+  function liste() {
+    const items = [...data.chantiers]
+      .filter((c) =&gt; filtreStatut === "tous" || c.statut === filtreStatut)
+      .filter(correspond)
+      .sort((a, b) =&gt; (ORDRE[a.statut] - ORDRE[b.statut]) || a.titre.localeCompare(b.titre));
+    $("#liste").innerHTML = items.map(carte).join("") || "&lt;p&gt;Aucun chantier.&lt;/p&gt;";
+  }
+
+  function notes() {
+    const p = data.priseDeNotes;
+    $("#notes").innerHTML = p.bacs.map((b) =&gt;
+      `&lt;div class="bac"&gt;&lt;h4&gt;${esc(b.titre)} (${b.items.length})&lt;/h4&gt;` +
+      (b.items.length ? `&lt;ul&gt;${b.items.map((i) =&gt; `&lt;li&gt;${esc(i)}&lt;/li&gt;`).join("")}&lt;/ul&gt;` : "&lt;p&gt;À alimenter.&lt;/p&gt;") +
+      `&lt;/div&gt;`).join("");
+  }
+
+  function rendu() { stats(); filtres(); liste(); }
+
+  $("#maj").textContent = "Dernière mise à jour : " + data.miseAJour;
+  $("#avert").textContent = data.avertissement;
+  $("#footer").textContent =
+    "Tableau tenu à jour dans donnees.js. On modifie ce fichier — la page le relit au rechargement.";
+  rendu();
+  notes();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    </figure>
+    <p>Sous le capot, rien de sorcier. Au chargement, la page lit <code>window.TABLEAU</code> et fabrique l'affichage : les tuiles de statistiques, un bouton de filtre par statut réellement présent, les cartes triées (l'orange en haut, le vert en bas), et les bacs de notes. La recherche balaie tout le texte des cartes. Les couleurs suivent le statut automatiquement.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span>Faire vivre le tableau</h2>
+    <p class="kicker">C'est là que la démarche prend son sens, et la partie que l'assistant IA prend en charge.</p>
+    <p><strong>Une seule règle d'or : on ne modifie que <code>donnees.js</code>.</strong> Jamais <code>index.html</code> pour une mise à jour de contenu. Ajouter un chantier, changer un statut, lever un point d'attente : tout se fait dans la liste <code>chantiers</code>. Pensez à mettre à jour la date <code>miseAJour</code> au passage.</p>
+    <p><strong>Confiez la tenue à l'IA.</strong> Le cœur de la démarche est là : ce n'est pas vous qui saisissez, c'est l'assistant. Une consigne permanente, inscrite dans ses instructions, rend le geste systématique.</p>
+    <div class="callout quote">
+      <p>À la fin de chaque séance où l'état des chantiers a bougé, mets à jour le fichier de données du tableau de bord. Construis la carte en scannant le contenu réel de mes dossiers, pas seulement ce qui a changé récemment. La matière qui vit hors de ta portée (autres outils, réunions, dossiers physiques) n'est connue que si je te la signale : ne l'invente pas, marque-la comme lacune.</p>
+    </div>
+    <p><strong>Scanner le réel, pas seulement les changements.</strong> C'est le point qui sépare un tableau juste d'un tableau trompeur. L'assistant doit se fonder sur l'état réel des dossiers, pas sur sa mémoire de la dernière conversation, qui est partielle. La consigne l'oblige à vérifier plutôt qu'à supposer.</p>
+    <p><strong>Nommer les angles morts.</strong> Un assistant ne voit que ce qui est à sa portée. Une réunion, un appel, un document resté sur le bureau lui sont invisibles. Plutôt que d'inventer, il marque « lacune », et c'est à vous de combler. Un tableau qui affiche honnêtement ses trous vaut mieux qu'un tableau qui feint d'être complet : c'est la leçon de la carte et du territoire. Le tableau n'est pas votre travail, il en est la représentation, et une bonne représentation sait dire où elle s'arrête.</p>
+    <div class="callout">
+      <p class="lbl">Le bon réflexe</p>
+      <p>Vous relisez, vous corrigez, vous décidez. L'assistant propose l'état ; vous êtes le rédacteur en chef. C'est vous qui savez qu'un chantier annoncé « terminé » ne l'est pas vraiment. Le tableau est un dialogue, pas un rapport automatique.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">07</span>Reproduire chez vous</h2>
+    <p class="kicker">La marche à suivre, dans l'ordre.</p>
+    <ol class="steps">
+      <li><span class="txt"><strong>Créez un dossier</strong> <code>pilotage/</code> dans votre espace de travail.</span></li>
+      <li><span class="txt"><strong>Copiez-y les deux fichiers</strong> de ce guide, tels quels.</span></li>
+      <li><span class="txt"><strong>Videz les chantiers d'exemple</strong> et mettez les vôtres. Commencez petit : trois ou quatre suffisent à sentir l'intérêt.</span></li>
+      <li><span class="txt"><strong>Ouvrez</strong> <code>index.html</code> d'un double-clic. Vérifiez que tout s'affiche.</span></li>
+      <li><span class="txt"><strong>Ajoutez la consigne permanente</strong> dans les instructions de votre assistant, pour qu'il tienne le tableau à jour en fin de séance.</span></li>
+      <li><span class="txt"><strong>Adaptez à votre système.</strong> Statuts, couleurs et domaines sont les miens ; changez-les. Le squelette, lui, ne bouge pas.</span></li>
+    </ol>
+    <p>Ce qui compte n'est pas le code, qui est trivial, mais la discipline : une source de vérité unique, tenue par l'IA à partir du réel, qui remonte ce qui attend une décision et dit honnêtement ce qu'elle ignore. Le reste n'est que présentation.</p>
+  </section>
+
+  <div class="essence">
+    <h2>L'essentiel</h2>
+    <ul>
+      <li><strong>Deux fichiers</strong> — <code>index.html</code> affiche, <code>donnees.js</code> contient tout — sans dépendance ni serveur, ouvrables d'un double-clic.</li>
+      <li><strong>Trois partis pris</strong> font sa valeur : source de vérité unique tenue par l'IA, mise en avant de ce qui attend votre décision, honnêteté Fait / Interprétation / Lacune.</li>
+      <li>On ne modifie <strong>que <code>donnees.js</code></strong> ; la page le relit au rechargement.</li>
+      <li>La maintenance est <strong>confiée à l'assistant</strong> via une consigne permanente : il scanne le réel, remonte les points d'attente, marque comme « lacune » ce qui lui échappe. Vous relisez et décidez.</li>
+    </ul>
+  </div>
+
+  <footer class="foot">
+    Mode d'emploi rédigé pour les camarades du Bootcamp. Source versionnée : <code>editions/mode-emploi-tableau-pilotage.md</code>.
+  </footer>
+
+</div>
+</body>
+</html>
