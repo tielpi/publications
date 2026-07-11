@@ -221,6 +221,16 @@
   ol.steps li .txt { padding-top: .15rem; }
   ol.steps li .txt strong { display: block; }
 
+  /* Listes et code en ligne dans le corps des sections */
+  section ul, section ol { margin: 1.1rem 0; padding-left: 1.4rem; }
+  section li { margin-bottom: .5rem; }
+  section li::marker { color: var(--muted); }
+  section ol li::marker { font-family: var(--mono); font-size: .82em; color: var(--accent); }
+  p code, li code {
+    font-family: var(--mono); font-size: .85em;
+    background: var(--surface-2); padding: .05rem .32rem; border-radius: 5px;
+  }
+
   /* ————— L'essentiel ————— */
   .essence {
     margin: 3.5rem 0 0; padding: 1.8rem 1.6rem;
@@ -610,10 +620,23 @@ window.TABLEAU = {
     <h2><span class="num">06</span>Faire vivre le tableau</h2>
     <p class="kicker">C'est là que la démarche prend son sens, et la partie que l'assistant IA prend en charge.</p>
     <p><strong>Une seule règle d'or : on ne modifie que <code>donnees.js</code>.</strong> Jamais <code>index.html</code> pour une mise à jour de contenu. Ajouter un chantier, changer un statut, lever un point d'attente : tout se fait dans la liste <code>chantiers</code>. Pensez à mettre à jour la date <code>miseAJour</code> au passage.</p>
-    <p><strong>Confiez la tenue à l'IA.</strong> Le cœur de la démarche est là : ce n'est pas vous qui saisissez, c'est l'assistant. Une consigne permanente, inscrite dans ses instructions, rend le geste systématique.</p>
+    <p><strong>Confiez la tenue à l'IA.</strong> Le cœur de la démarche est là : ce n'est pas vous qui saisissez, c'est l'assistant. Lui « demander » à chaque fois serait fragile, car on oublie. L'astuce est d'inscrire la demande <strong>une fois pour toutes</strong>, là où l'assistant relit ses instructions à chaque session. Voici la mienne, à adapter :</p>
     <div class="callout quote">
       <p>À la fin de chaque séance où l'état des chantiers a bougé, mets à jour le fichier de données du tableau de bord. Construis la carte en scannant le contenu réel de mes dossiers, pas seulement ce qui a changé récemment. La matière qui vit hors de ta portée (autres outils, réunions, dossiers physiques) n'est connue que si je te la signale : ne l'invente pas, marque-la comme lacune.</p>
     </div>
+    <p><strong>Où vit cette « consigne permanente », concrètement.</strong> La question revient souvent, soyons donc explicites : ce n'est <strong>ni une compétence à programmer, ni un module séparé, ni du code</strong>. C'est du texte en langage naturel, déposé dans le fichier d'instructions permanentes de votre assistant, celui qu'il recharge au début de chaque conversation. Selon l'outil, il porte un nom différent :</p>
+    <ul>
+      <li><strong>Claude Code</strong> : le fichier <code>CLAUDE.md</code>, à la racine du projet.</li>
+      <li><strong>Un Projet Claude, un GPT personnalisé</strong> : le champ « instructions » du projet.</li>
+      <li><strong>ChatGPT</strong> : les « instructions personnalisées ».</li>
+    </ul>
+    <p>Trois façons de s'y prendre, de la plus fragile à la plus solide :</p>
+    <ol>
+      <li><strong>Le lui redemander à chaque séance.</strong> Ça marche, mais ça repose sur votre seule mémoire. Fragile.</li>
+      <li><strong>L'inscrire comme consigne permanente</strong> (recommandé) dans le fichier ci-dessus : l'assistant la relit à chaque session et pense de lui-même à la mise à jour. Pas de compétence à créer, pas de script, ce seul paragraphe écrit une fois.</li>
+      <li><strong>La doubler d'un rappel automatique</strong>, pour les outils qui le permettent. Le plus solide.</li>
+    </ol>
+    <p><strong>Le cran supérieur : un rappel automatique.</strong> Une consigne, même permanente, dépend encore de la vigilance de l'assistant. Certains outils, dont Claude Code, permettent d'ajouter un <em>hook</em> : un petit script que le logiciel exécute mécaniquement à la fin de chaque échange, sans rien demander à l'assistant. Le mien compare la liste réelle de mes dossiers au contenu du tableau ; si un dossier manque, il affiche un rappel discret mais tenace, jusqu'à ce que je comble l'écart. La consigne dit <em>quoi</em> faire ; le hook garantit qu'on <em>y pense</em>. C'est la ceinture et les bretelles. Ce raffinement est optionnel : commencez par la consigne permanente, elle suffit largement.</p>
     <p><strong>Scanner le réel, pas seulement les changements.</strong> C'est le point qui sépare un tableau juste d'un tableau trompeur. L'assistant doit se fonder sur l'état réel des dossiers, pas sur sa mémoire de la dernière conversation, qui est partielle. La consigne l'oblige à vérifier plutôt qu'à supposer.</p>
     <p><strong>Nommer les angles morts.</strong> Un assistant ne voit que ce qui est à sa portée. Une réunion, un appel, un document resté sur le bureau lui sont invisibles. Plutôt que d'inventer, il marque « lacune », et c'est à vous de combler. Un tableau qui affiche honnêtement ses trous vaut mieux qu'un tableau qui feint d'être complet : c'est la leçon de la carte et du territoire. Le tableau n'est pas votre travail, il en est la représentation, et une bonne représentation sait dire où elle s'arrête.</p>
     <div class="callout">
