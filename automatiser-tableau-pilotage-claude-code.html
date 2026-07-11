@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatiser le tableau de bord avec Claude Code — le hook et la skill</title>
+<style>
+  :root {
+    --ground:#f7f8fa; --surface:#ffffff; --surface-2:#f0f2f5;
+    --ink:#1c2024; --muted:#5a626c; --hair:#e2e5ea;
+    --accent:#b8560f; --accent-soft:#fbeadd;
+    --st-feedback:#d9741f;
+    --serif: "Charter", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#16181d; --surface:#1e2128; --surface-2:#23262e;
+      --ink:#e7eaee; --muted:#99a1ac; --hair:#2e323b;
+      --accent:#ffab6b; --accent-soft:#33271c; --st-feedback:#ff9d55;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#16181d; --surface:#1e2128; --surface-2:#23262e;
+    --ink:#e7eaee; --muted:#99a1ac; --hair:#2e323b;
+    --accent:#ffab6b; --accent-soft:#33271c; --st-feedback:#ff9d55;
+  }
+  :root[data-theme="light"] {
+    --ground:#f7f8fa; --surface:#ffffff; --surface-2:#f0f2f5;
+    --ink:#1c2024; --muted:#5a626c; --hair:#e2e5ea;
+    --accent:#b8560f; --accent-soft:#fbeadd; --st-feedback:#d9741f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 17px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 0 1.4rem 6rem; }
+
+  .hero { padding: 4.5rem 0 2.4rem; border-bottom: 1px solid var(--hair); }
+  .eyebrow {
+    font-size: .74rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin: 0 0 1.3rem;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-weight: 600; text-wrap: balance;
+    font-size: clamp(2rem, 5.5vw, 2.9rem); line-height: 1.1; letter-spacing: -.01em;
+    margin: 0 0 1rem;
+  }
+  .hero .dek { font-size: 1.16rem; color: var(--muted); max-width: 34em; margin: 0; text-wrap: pretty; }
+  .backlink { margin-top: 1.6rem; font-size: .9rem; }
+  .backlink a { color: var(--accent); font-weight: 600; }
+  .backlink a::before { content: "← "; }
+  .byline {
+    margin-top: 1.6rem; font-size: .82rem; color: var(--muted);
+    display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;
+  }
+  .byline .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); opacity: .6; }
+
+  section { padding-top: 3rem; }
+  h2 {
+    font-family: var(--serif); font-weight: 600; font-size: 1.7rem;
+    line-height: 1.2; letter-spacing: -.01em; text-wrap: balance;
+    margin: 0 0 .3rem; display: flex; align-items: baseline; gap: .7rem;
+  }
+  h2 .num {
+    font-family: var(--mono); font-size: .8rem; font-weight: 500;
+    color: var(--accent); letter-spacing: 0; flex: none; transform: translateY(-.35em);
+  }
+  .kicker { color: var(--muted); font-size: 1.02rem; margin: 0 0 1.6rem; }
+  h3 {
+    font-family: var(--sans); font-weight: 650; font-size: 1.08rem;
+    margin: 2rem 0 .2rem; letter-spacing: -.005em;
+  }
+  p { margin: 0 0 1.1rem; text-wrap: pretty; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 650; }
+
+  section ul, section ol { margin: 1.1rem 0; padding-left: 1.4rem; }
+  section li { margin-bottom: .5rem; }
+  section li::marker { color: var(--muted); }
+  section ol li::marker { font-family: var(--mono); font-size: .82em; color: var(--accent); }
+  p code, li code, h3 code {
+    font-family: var(--mono); font-size: .85em;
+    background: var(--surface-2); padding: .05rem .32rem; border-radius: 5px;
+  }
+
+  .roles { display: flex; flex-direction: column; gap: 1rem; margin: 1.6rem 0; }
+  .role {
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 12px;
+    padding: 1.2rem 1.4rem; border-left: 3px solid var(--accent);
+  }
+  .role h3 { margin: 0 0 .3rem; font-size: 1.02rem; }
+  .role p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  figure.code { margin: 1.4rem 0; }
+  figure.code figcaption {
+    font-family: var(--mono); font-size: .76rem; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--muted);
+    padding: .5rem .9rem; background: var(--surface-2);
+    border: 1px solid var(--hair); border-bottom: none; border-radius: 10px 10px 0 0;
+  }
+  figure.code figcaption .dotfile { color: var(--accent); font-weight: 600; text-transform: none; letter-spacing: 0; }
+  pre {
+    margin: 0; padding: 1.1rem 1.3rem; overflow-x: auto;
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 0 0 10px 10px;
+    font-family: var(--mono); font-size: .82rem; line-height: 1.6; color: var(--ink);
+    -webkit-text-size-adjust: 100%;
+  }
+  pre.solo { border-radius: 10px; }
+  pre code { font: inherit; background: none; padding: 0; }
+
+  .callout {
+    background: var(--surface); border: 1px solid var(--hair);
+    border-left: 3px solid var(--st-feedback); border-radius: 10px;
+    padding: 1.1rem 1.3rem; margin: 1.6rem 0;
+  }
+  .callout .lbl {
+    font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 700; color: var(--st-feedback); margin: 0 0 .5rem;
+  }
+  .callout ul { margin: 0; padding-left: 1.2rem; }
+  .callout li { margin-bottom: .5rem; font-size: .95rem; }
+  .callout li:last-child { margin-bottom: 0; }
+
+  ol.flow { list-style: none; counter-reset: s; padding: 0; margin: 1.6rem 0; display: flex; flex-direction: column; gap: .9rem; }
+  ol.flow li { counter-increment: s; display: flex; gap: 1rem; align-items: flex-start; }
+  ol.flow li::before {
+    content: counter(s); flex: none; width: 1.9rem; height: 1.9rem;
+    display: grid; place-items: center; border-radius: 50%;
+    font-family: var(--mono); font-size: .85rem; font-weight: 600;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--hair);
+  }
+  ol.flow li .txt { padding-top: .15rem; }
+
+  .essence {
+    margin: 3.5rem 0 0; padding: 1.8rem 1.6rem;
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 14px;
+  }
+  .essence h2 { font-size: 1.35rem; margin-bottom: 1rem; }
+  .essence ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .6rem; }
+  .essence li { color: var(--ink); font-size: .96rem; }
+
+  footer.foot {
+    margin-top: 3rem; padding-top: 1.4rem; border-top: 1px solid var(--hair);
+    font-size: .82rem; color: var(--muted);
+  }
+  footer.foot a { color: var(--accent); }
+
+  @media (max-width: 480px) { body { font-size: 16px; } .hero { padding-top: 3rem; } h2 { font-size: 1.45rem; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(10px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero reveal">
+    <p class="eyebrow">Compagnon technique · Claude Code</p>
+    <h1>Automatiser le tableau de bord avec Claude Code</h1>
+    <p class="dek">Le hook et la skill : deux petits outils qui rendent la mise à jour du tableau plus fiable, sans rien vous demander de plus au quotidien.</p>
+    <p class="backlink"><a href="mode-emploi-tableau-pilotage.html">Revenir au mode d'emploi du tableau de bord</a></p>
+    <div class="byline">
+      <span>Thierry Le Pesant</span><span class="dot"></span>
+      <span>Prolongement technique</span><span class="dot"></span>
+      <span>Utilisateurs de Claude Code</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">01</span>Pré-requis</h2>
+    <p class="kicker">Cette page est le prolongement technique du mode d'emploi. Plus avancée, mais toujours pas à pas. Si la consigne permanente du mode d'emploi vous suffit, vous pouvez l'ignorer sans rien perdre d'essentiel.</p>
+    <ul>
+      <li>Vous utilisez <strong>Claude Code</strong> (le mode d'emploi de base, lui, marche avec n'importe quel assistant).</li>
+      <li>Vous avez déjà le tableau de bord de base : le dossier <code>pilotage/</code> avec <code>index.html</code> et <code>donnees.js</code>.</li>
+      <li>Votre travail est rangé dans des dossiers thématiques (chez nous <code>bibliotheque/</code>, <code>notes/</code>, <code>recherches/</code>, <code>projets/</code>). Vous adapterez ces noms aux vôtres.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>Le principe : séparer trois rôles</h2>
+    <p class="kicker">Tenir un tableau à jour mêle trois choses différentes, qu'on gagne à distinguer.</p>
+    <div class="roles">
+      <div class="role"><h3>Le déclencheur</h3><p>Ce qui fait qu'on <em>pense</em> à mettre à jour. Sans lui, on oublie. → le <strong>hook</strong>.</p></div>
+      <div class="role"><h3>La méthode</h3><p>Comment mettre à jour correctement : quoi scanner, quoi vérifier. → la <strong>skill</strong>.</p></div>
+      <div class="role"><h3>La source de vérité</h3><p>Les données elles-mêmes. → <code>donnees.js</code>, inchangé.</p></div>
+    </div>
+    <p>Le mode d'emploi de base fusionne les deux premiers dans une consigne écrite. Les outils de cette page les séparent proprement, chacun à sa place, chacun réutilisable. C'est la même idée que la <em>progressive disclosure</em> : ne montrer une information qu'au moment où elle sert, plutôt que d'encombrer en permanence les instructions de l'assistant.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>Le hook — le déclencheur automatique</h2>
+    <p class="kicker">Un <em>hook</em> est un petit script que Claude Code exécute tout seul, à un moment précis, sans que l'assistant ait à y penser.</p>
+    <p>Le moment qui nous intéresse s'appelle l'événement <code>Stop</code> : la fin de chaque échange. À cet instant, notre hook vérifie si le tableau a pris du retard, et affiche un rappel discret si c'est le cas. C'est un réveille-matin, pas un exécutant : il sonne, il ne range pas la chambre.</p>
+
+    <h3>Où le poser, et le rendre exécutable</h3>
+    <figure class="code"><figcaption>chemin du fichier</figcaption><pre class="solo"><code>.claude/hooks/pilotage-drift.sh</code></pre></figure>
+    <p>Puis, une fois, depuis un terminal :</p>
+    <figure class="code"><figcaption>terminal</figcaption><pre class="solo"><code>chmod +x .claude/hooks/pilotage-drift.sh</code></pre></figure>
+
+    <h3>Le brancher dans les réglages</h3>
+    <p>Claude Code ne lance un hook que si on le lui dit. On l'inscrit dans <code>.claude/settings.json</code>, sous l'événement <code>Stop</code> :</p>
+    <figure class="code"><figcaption><span class="dotfile">.claude/settings.json</span></figcaption><pre><code>{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pilotage-drift.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></figure>
+    <p><code>$CLAUDE_PROJECT_DIR</code> est une variable que Claude Code remplit tout seul avec le chemin de votre projet : le hook fonctionne donc où que vive le dossier.</p>
+
+    <h3>Le code, commenté</h3>
+    <figure class="code"><figcaption><span class="dotfile">.claude/hooks/pilotage-drift.sh</span></figcaption><pre><code>#!/usr/bin/env bash
+# ------------------------------------------------------------------ #
+#  Hook Stop — rappel de mise à jour du tableau de bord de pilotage.
+#
+#  À la fin de chaque tour, compare le contenu réel du dépôt
+#  (dossiers auteurs de bibliotheque/, dossiers de notes/ et de
+#  recherches/ contenant au moins une note .md) à ce qui est
+#  référencé dans pilotage/donnees.js. Si un dossier n'y figure pas,
+#  émet un rappel NON BLOQUANT (le travail n'est jamais interrompu).
+#
+#  Silencieux quand le tableau est à jour. Le rappel persiste, tour
+#  après tour, tant que l'écart n'est pas comblé.
+# ------------------------------------------------------------------ #
+
+ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
+DB="$ROOT/pilotage/donnees.js"
+[ -f "$DB" ] || exit 0
+DBTXT="$(cat "$DB")"
+
+missing=""
+scan() {
+  local base="$1" d name
+  [ -d "$ROOT/$base" ] || return 0
+  for d in "$ROOT/$base"/*/; do
+    [ -d "$d" ] || continue
+    # ignorer un dossier qui ne contient aucune note .md (ex. résidu)
+    find "$d" -type f -name '*.md' -print -quit 2&gt;/dev/null | grep -q . || continue
+    name="$(basename "$d")"
+    case "$DBTXT" in
+      *"$name"*) : ;;                                  # déjà référencé
+      *) missing="${missing:+$missing, }$base/$name" ;; # absent du tableau
+    esac
+  done
+}
+
+scan bibliotheque
+scan notes
+scan recherches
+
+[ -z "$missing" ] &amp;&amp; exit 0
+
+# Message ASCII volontairement (JSON sûr sans échappement).
+msg="RAPPEL pilotage : de la matiere du depot n'est pas dans le tableau de bord (pilotage/donnees.js), qui est donc en retard -&gt; ${missing}. Mets a jour pilotage/donnees.js avant de clore."
+printf '{"systemMessage": "%s"}\n' "$msg"
+exit 0</code></pre></figure>
+    <p>En clair : il repère la source de vérité <code>donnees.js</code> et la lit ; il parcourt chaque sous-dossier de <code>bibliotheque/</code>, <code>notes/</code>, <code>recherches/</code> contenant au moins une note ; pour chacun, il vérifie si son nom apparaît dans <code>donnees.js</code>. S'il en manque un, il l'ajoute à une liste et affiche un rappel. Si tout est référencé, il se tait.</p>
+
+    <div class="callout">
+      <p class="lbl">Ses deux angles morts, à connaître</p>
+      <ul>
+        <li><strong>Il ne voit que l'omission, pas la péremption.</strong> Il détecte un dossier absent, mais il est aveugle à un chantier déjà inscrit dont l'état a changé : un statut devenu faux, un point d'attente déjà levé. Ce genre de correction demande un regard, pas un <code>grep</code>.</li>
+        <li><strong>Il ne scanne que trois blocs</strong> (<code>bibliotheque/</code>, <code>notes/</code>, <code>recherches/</code>). Un chantier vivant ailleurs, ou hors de votre ordinateur, lui échappe.</li>
+      </ul>
+    </div>
+    <p>Ces limites ne sont pas des défauts : elles justifient le second outil. Le hook rattrape ce qu'on oublie d'<em>ajouter</em> ; la skill rattrape ce qu'on oublie de <em>corriger</em>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>La skill — la méthode à la demande</h2>
+    <p class="kicker">Une <em>skill</em> est un mode d'emploi que l'assistant charge au moment où il en a besoin, et pas avant.</p>
+    <p>Plutôt que d'écrire la méthode complète dans les instructions permanentes (où elle pèserait en continu), on la range dans une skill que l'assistant ouvre quand la situation se présente. C'est là que vit la vraie méthode : quoi scanner, quoi vérifier, comment noter.</p>
+
+    <h3>Où elle vit</h3>
+    <figure class="code"><figcaption>chemin du fichier</figcaption><pre class="solo"><code>.claude/skills/pilotage/SKILL.md</code></pre></figure>
+    <p>L'en-tête du fichier (entre les deux lignes <code>---</code>) décrit à l'assistant <em>quand</em> l'utiliser. Le corps décrit <em>comment</em>.</p>
+
+    <h3>Le fichier complet</h3>
+    <figure class="code"><figcaption><span class="dotfile">.claude/skills/pilotage/SKILL.md</span></figcaption><pre><code>---
+name: pilotage
+description: Mettre à jour le tableau de bord de pilotage (pilotage/donnees.js),
+  la carte de l'état de tous les chantiers. Ne pas la remplir de mémoire, mais la
+  reconstruire depuis le contenu réel du dépôt, sur deux fronts (matière nouvelle
+  absente ET chantier existant périmé). Se déclenche en fin de séance quand l'état
+  a bougé, quand le hook pilotage-drift a émis son rappel, ou quand l'utilisateur
+  dit "mets à jour le pilotage", "mets à jour le tableau de bord", ou /pilotage.
+---
+
+# Pilotage
+
+Tenir à jour pilotage/donnees.js, source de vérité lue par pilotage/index.html.
+La valeur du tableau tient à une chose : qu'il dise le vrai.
+
+Ce réflexe est doublé, pas remplacé, par le hook Stop pilotage-drift.sh : le hook
+signale la matière nouvelle absente, mais il est aveugle à l'état périmé. Le hook
+bouche l'omission ; cette skill bouche la péremption.
+
+## Déclencheurs
+- Fin de séance où l'état des chantiers a bougé.
+- Le hook pilotage-drift a émis son rappel.
+- "mets à jour le pilotage", "mets à jour le tableau de bord", /pilotage.
+
+## Workflow
+1. Scanner le contenu RÉEL du dépôt (bibliotheque/, notes/, recherches/,
+   projets/), pas git status, pas sa mémoire de la conversation.
+2. Confronter au tableau sur deux fronts :
+   a. Matière nouvelle absente -&gt; créer un chantier au schéma de donnees.js.
+   b. Chantier existant périmé -&gt; corriger statut, lever un feedback obsolète.
+3. Statuts de la liste fermée ; note en registre F (Fait) / I (Interprétation)
+   / L (Lacune).
+4. Ne pas inventer la matière hors dépôt : la marquer "lacune".
+5. Mettre à jour miseAJour ; proposer, ne pas écrire en silence ; proposer
+   ensuite une sauvegarde.</code></pre></figure>
+
+    <h3>Comment elle se déclenche</h3>
+    <p>Trois portes d'entrée, toutes décrites dans le <code>description</code> de l'en-tête : vous le dites (« mets à jour le pilotage »), l'assistant le propose de lui-même en fin de séance, ou le rappel du hook l'y invite. Dans les trois cas, l'assistant ouvre la skill et suit sa méthode.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span>L'articulation : le flux bout à bout</h2>
+    <p class="kicker">Les deux outils et la consigne s'emboîtent ainsi.</p>
+    <ol class="flow">
+      <li><span class="txt"><strong>En fin d'échange</strong>, le hook compare les dossiers réels au tableau. S'il manque de la matière, il affiche son rappel.</span></li>
+      <li><span class="txt"><strong>L'assistant</strong>, alerté par le rappel (ou par sa propre consigne de fin de séance), <strong>ouvre la skill</strong> <code>pilotage</code>.</span></li>
+      <li><span class="txt"><strong>La skill</strong> lui fait traiter les deux fronts : la matière nouvelle <em>et</em> l'état périmé que le hook ne voyait pas.</span></li>
+      <li><span class="txt"><strong><code>donnees.js</code></strong> est mis à jour, puis une sauvegarde est proposée.</span></li>
+    </ol>
+    <p>Dans les instructions permanentes de l'assistant (le <code>CLAUDE.md</code>), il ne reste alors qu'<strong>une ligne</strong> : « en fin de séance, mets à jour le tableau via la skill <code>pilotage</code> ; le hook <code>pilotage-drift</code> double ce réflexe ». Le <em>quand</em> reste sous les yeux de l'assistant en permanence ; le <em>comment</em> n'est chargé qu'au bon moment.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span>À adapter chez vous</h2>
+    <p class="kicker">Ces deux fichiers sont taillés pour notre dépôt. Avant de les réutiliser :</p>
+    <ul>
+      <li>Dans le hook, remplacez <code>bibliotheque</code>, <code>notes</code>, <code>recherches</code> par les noms de <strong>vos</strong> dossiers de travail.</li>
+      <li>Dans la skill, ajustez la liste des blocs à scanner et le vocabulaire de vos statuts.</li>
+      <li>Vérifiez que les statuts cités correspondent à ceux de votre <code>donnees.js</code> (voir le mode d'emploi de base).</li>
+    </ul>
+  </section>
+
+  <div class="essence">
+    <h2>L'essentiel</h2>
+    <ul>
+      <li>Prolongement technique du mode d'emploi, réservé à <strong>Claude Code</strong>. La consigne permanente suffit à démarrer ; ceci la fiabilise.</li>
+      <li><strong>Trois rôles séparés</strong> : le <strong>hook</strong> déclenche (automatiquement, à chaque fin d'échange), la <strong>skill</strong> porte la méthode (chargée à la demande), <code>donnees.js</code> fait foi.</li>
+      <li>Le <strong>hook</strong> détecte la matière <em>absente</em> ; il est aveugle à l'état <em>périmé</em>. La <strong>skill</strong> couvre ce second angle mort. Complémentaires, pas redondants.</li>
+      <li>Résultat : une seule ligne dans les instructions permanentes, une mise à jour fiable, et deux outils réutilisables et adaptables.</li>
+    </ul>
+  </div>
+
+  <footer class="foot">
+    Compagnon technique du <a href="mode-emploi-tableau-pilotage.html">mode d'emploi du tableau de bord</a>. Source versionnée : <code>editions/automatiser-tableau-pilotage-claude-code.md</code>.
+  </footer>
+
+</div>
+</body>
+</html>
