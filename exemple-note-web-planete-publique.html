@@ -240,10 +240,22 @@
   /* Arche de signature : la marque de fabrique 2026, en clôture de page.
      Formes organiques en dégradé qui émergent du bas, reprises de la couverture. */
   .arch-signature {
-    display: block;
+    position: relative;
     width: 100%;
     height: 150px;
     margin-top: 1.5rem;
+    overflow: hidden;
+  }
+  .arch-signature .blob { position: absolute; border-radius: 50%; }
+  .arch-signature .blob-a {
+    width: 30rem; height: 30rem;
+    left: 6%; bottom: -21rem;
+    background: linear-gradient(140deg, var(--bordeaux), var(--corail));
+  }
+  .arch-signature .blob-b {
+    width: 23rem; height: 23rem;
+    left: calc(6% + 14rem); bottom: -17rem;
+    background: linear-gradient(140deg, var(--turquoise), var(--canard));
   }
 
   .sheet {
@@ -484,19 +496,9 @@
 
 </div>
 
-<svg class="arch-signature" viewBox="0 0 1200 150" preserveAspectRatio="xMinYMax slice" role="img" aria-label="Signature graphique Planète Publique">
-  <defs>
-    <linearGradient id="pp-arch-a" x1="0%" y1="10%" x2="65%" y2="100%">
-      <stop offset="0%" stop-color="#94012F"/>
-      <stop offset="100%" stop-color="#DE6C66"/>
-    </linearGradient>
-    <linearGradient id="pp-arch-b" x1="15%" y1="0%" x2="95%" y2="100%">
-      <stop offset="0%" stop-color="#64C5B4"/>
-      <stop offset="100%" stop-color="#008195"/>
-    </linearGradient>
-  </defs>
-  <circle cx="215" cy="300" r="210" fill="url(#pp-arch-a)"/>
-  <circle cx="415" cy="330" r="155" fill="url(#pp-arch-b)"/>
-</svg>
+<div class="arch-signature" aria-hidden="true">
+  <span class="blob blob-a"></span>
+  <span class="blob blob-b"></span>
+</div>
 </body>
 </html>
